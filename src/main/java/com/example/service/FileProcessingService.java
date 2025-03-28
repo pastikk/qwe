@@ -37,7 +37,6 @@ public class FileProcessingService {
                 .toAbsolutePath()
                 .normalize();
 
-        // Защита от Path Traversal
         if (!filePath.startsWith(Paths.get(uploadDir).toAbsolutePath())) {
             throw new SecurityException("Попытка доступа к файлу вне рабочей директории");
         }
@@ -118,7 +117,6 @@ public class FileProcessingService {
 
             createHeaderRow(outputSheet);
 
-            // Обработка данных
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
@@ -128,12 +126,10 @@ public class FileProcessingService {
                 createDataRow(outputSheet, i, user);
             }
 
-            // Сохранение обработанного файла
             try (FileOutputStream fos = new FileOutputStream(outputFilePath)) {
                 outputWorkbook.write(fos);
             }
 
-            // Генерация PDF отчета
             try (FileOutputStream pdfOut = new FileOutputStream(pdfFilePath)) {
                 String html = generateHtmlReport(processedUsers);
                 HtmlConverter.convertToPdf(html, pdfOut);
@@ -163,7 +159,7 @@ public class FileProcessingService {
         // ФИО
         row.createCell(0).setCellValue(user.getFullName());
 
-        // Дата рождения (с проверкой на null)
+        // Дата рождения
         String birthDateStr = user.getBirthDate() != null ? user.getBirthDate().toString() : "";
         row.createCell(1).setCellValue(birthDateStr);
 
@@ -171,7 +167,7 @@ public class FileProcessingService {
         row.createCell(2).setCellValue(user.getAgeYears());
         row.createCell(3).setCellValue(user.getAgeMonths());
 
-        // Статус и ошибки
+        // Oшибки
         row.createCell(4).setCellValue(user.getStatus());
         row.createCell(5).setCellValue(user.getErrorDetails() != null ? user.getErrorDetails() : "");
     }
@@ -264,7 +260,6 @@ public class FileProcessingService {
     private ProcessedUser processUserRow(Row row) {
         ProcessedUser user = new ProcessedUser();
         try {
-            // 1. Обработка ФИО (первая колонка)
             Cell nameCell = row.getCell(0);
             if (nameCell != null) {
                 user.setFullName(nameCell.toString().trim());
@@ -275,26 +270,21 @@ public class FileProcessingService {
                 return user;
             }
 
-            // 2. Обработка даты рождения (вторая колонка)
             Cell dateCell = row.getCell(1);
             if (dateCell != null) {
                 try {
                     LocalDate birthDate;
                     if (dateCell.getCellType() == CellType.NUMERIC) {
-                        // Для числового формата даты Excel
                         birthDate = dateCell.getLocalDateTimeCellValue().toLocalDate();
                     } else {
-                        // Для текстового формата (например, "1990-05-15")
                         birthDate = LocalDate.parse(dateCell.toString().trim());
                     }
                     user.setBirthDate(birthDate);
 
-                    // 3. Расчет возраста
                     Period period = Period.between(birthDate, LocalDate.now());
                     user.setAgeYears(period.getYears());
                     user.setAgeMonths(period.getMonths());
 
-                    // 4. Проверка корректности даты
                     if (birthDate.isAfter(LocalDate.now())) {
                         user.setStatus("не ок");
                         user.setErrorDetails("Дата рождения в будущем");

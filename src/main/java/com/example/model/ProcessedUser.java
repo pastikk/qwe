@@ -10,14 +10,12 @@ public class ProcessedUser {
     private String status;
     private String errorDetails;
 
-    // Конструктор по умолчанию
     public ProcessedUser() {
         this.fullName = "";
         this.status = "";
         this.errorDetails = "";
     }
 
-    // Геттеры и сеттеры
     public String getFullName() {
         return fullName;
     }

@@ -14,7 +14,6 @@ public class FileProcessingTask {
         QUEUED, PROCESSING, COMPLETED, FAILED, PENDING
     }
 
-    // Getters and Setters
     public String getTaskId() {
         return taskId;
     }
