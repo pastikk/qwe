@@ -1,0 +1,3 @@
+echo ".DS_Store" >> .gitignore
+echo ".CFUserTextEncoding" >> .gitignore
+echo "node_modules/" >> .gitignore

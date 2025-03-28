@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ошибка</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #e74c3c; }
+        .error-container {
+            border: 1px solid #e74c3c;
+            border-radius: 5px;
+            padding: 20px;
+            background-color: #fdecea;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .home-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="error-container">
+    <h1>Произошла ошибка</h1>
+    <p th:text="${error} ?: 'Неизвестная ошибка'"></p>
+    <a href="/" class="home-link">На главную</a>
+</div>
+</body>
+</html>

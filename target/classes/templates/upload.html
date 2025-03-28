@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузка файла</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #2c3e50; }
+        .upload-form {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            max-width: 500px;
+        }
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>Загрузка файла для обработки</h1>
+
+<div class="upload-form">
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx,.xls" required>
+        <button type="submit" style="margin-top: 10px; padding: 8px 16px;">
+            Загрузить и обработать
+        </button>
+    </form>
+
+    <div th:if="${error}" class="alert alert-danger mt-3">
+        <strong>Ошибка!</strong> <span th:text="${error}"></span>
+        <div th:if="${#strings.contains(error, 'xlsx')}">
+            <small>Поддерживаются только файлы формата .xlsx (Excel 2007+)</small>
+        </div>
+    </div>
+</div>
+</body>
+</html>

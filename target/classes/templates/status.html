@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const viewPdfBtn = document.querySelector('.btn-view');
+            if (viewPdfBtn) {
+                viewPdfBtn.addEventListener('click', function(e) {
+                    const taskId = /*[[${taskId}]]*/ '';
+                    fetch('/status/check-pdf?taskId=' + taskId)
+                        .then(response => {
+                            if (!response.ok) {
+                                alert('PDF еще не готов или произошла ошибка');
+                                e.preventDefault();
+                            }
+                        });
+                });
+            }
+        });
+    </script>
+
+    <meta charset="UTF-8">
+    <title>Статус обработки</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #2c3e50; }
+        .status-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .status-pending { color: #3498db; }
+        .status-processing { color: #f39c12; }
+        .status-completed { color: #2ecc71; }
+        .status-failed { color: #e74c3c; }
+        .refresh-info {
+            margin: 10px 0;
+            color: #666;
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .status-ok { color: green; }
+        .status-error { color: red; }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-pdf {
+            background-color: #e74c3c;
+        }
+        .btn-pdf:hover {
+            background-color: #c0392b;
+        }
+        .btn-view {
+            background-color: #27ae60;
+        }
+        .btn-view:hover {
+            background-color: #219653;
+        }
+        .btn-new {
+            background-color: #3498db;
+        }
+        .btn-new:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+<h1>Статус обработки файла</h1>
+
+<div class="status-card">
+    <p><strong>ID задачи:</strong> <span th:text="${task.taskId}"></span></p>
+    <p><strong>Исходный файл:</strong> <span th:text="${task.originalFilename}"></span></p>
+    <p><strong>Статус:</strong>
+        <span th:classappend="'status-' + ${task.status.toString().toLowerCase()}"
+              th:text="${task.status}"></span>
+    </p>
+    <p th:if="${task.errorDetails}"><strong>Ошибка:</strong>
+        <span th:text="${task.errorDetails}"></span></p>
+</div>
+
+<div th:if="${task.status == T(com.example.model.FileProcessingTask.TaskStatus).COMPLETED}">
+    <h2>Результаты обработки</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Дата рождения</th>
+            <th>Возраст (лет)</th>
+            <th>Возраст (мес.)</th>
+            <th>Статус</th>
+            <th>Детализация</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user : ${processedData}">
+            <td th:text="${user.fullName} ?: 'Нет данных'"></td>
+            <td th:text="${user.birthDate} ?: 'Нет данных'"></td>
+            <td th:text="${user.ageYears}"></td>
+            <td th:text="${user.ageMonths}"></td>
+            <td th:classappend="${user.status == 'Ок'} ? 'status-ok' : 'status-error'"
+                th:text="${user.status} ?: 'Нет данных'"></td>
+            <td th:text="${user.errorDetails} ?: ''"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="actions">
+        <a th:href="@{'/download/pdf?taskId=' + ${task.taskId}}" class="btn btn-pdf">
+            Скачать PDF отчёт
+        </a>
+        <a th:href="@{'/view/pdf?taskId=' + ${task.taskId}}" target="_blank" class="btn btn-view">
+            Посмотреть PDF
+        </a>
+        <a href="/" class="btn btn-new">Загрузить новый файл</a>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const taskId = /*[[${taskId}]]*/ '';
+    const statusElement = document.querySelector('.status-card p:nth-child(3) span');
+
+    function checkStatus() {
+        fetch('/status/check?taskId=' + taskId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.completed) {
+                    window.location.reload();
+                } else if (data.status) {
+                    statusElement.textContent = data.status;
+                    statusElement.className = 'status-' + data.status.toLowerCase();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Проверяем статус каждые 3 секунды, если обработка еще не завершена
+    if (statusElement && !statusElement.classList.contains('status-completed') &&
+        !statusElement.classList.contains('status-failed')) {
+        setInterval(checkStatus, 3000);
+    }
+    /*]]>*/
+</script>
+</body>
+</html>
